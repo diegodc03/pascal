@@ -1,0 +1,39 @@
+
+3 jugaddores cada uno con x cartones
+
+carton:
+    --> 3 filas --> 5 numeros por filas --> 15 numeros por carton
+        --> cada fila tiene un color: rojo verde azul Amarillo
+
+    numeros positios entre 1 y 100
+
+    Cuadricula: hazme la Cuadricula
+    0 10 20 30 40 50 60 70 80 90 
+    0 10 20 30 40 50 60 70 80 90
+    0 10 20 30 40 50 60 70 80 90
+
+    Esto debe estar en un fichero datos.txt
+
+Leer secuencialmente los cartones de cada jugador
+
+    rojo 3 2 10 12 8
+    azul 3 2 10 12 32
+    amarillo 3 4 5 2 50
+    FIN
+    rojo 10 20 30 40 50
+    verde 60 70 80 90 100
+    amarillo 5 10 15 20 25
+    FIN
+    amarillo 1 2 3 4 5
+    rojo 6 7 8 9 10
+    verde 11 12 13 14 15
+    FIN
+
+    rojo 3
+    verde 50
+    amarillo 7
+    
+
+
+
+
