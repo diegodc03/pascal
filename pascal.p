@@ -35,29 +35,16 @@ type
     end;
 
 
-
-    { Jugadas de bingo }
-    tipoJugada = record
-        numero: integer;
+    lista_jugadas = record
+        jugada: string;
         color: tipo_color;
     end;
 
-    tipoJugadas = record
-        jugadas: array[1..100] of tipoJugada;
-        elementos: integer; {Numero de elementos que tiene el array}
+    jugadas_bingo = record
+        lista_jugadas_impl: array[1..400] of lista_jugadas;
+        numJugadas: integer;
     end;
 
-    { Variables globales }
-
-
-    { Struct que sea que los numeros son STRING para que así puedan ponerse una x en os tachados}
-    fila_carton_string = record
-        color: tipo_color;
-        numeros: array[1..5] of string;
-    end;
-    carton_string = record
-        filas: array[1..3] of fila_carton_string;
-    end;
 
 
 procedure imprimirCarton(carton: carton);
@@ -194,7 +181,7 @@ end;
 
 
 
-procedure faseExtraccionValores(nombreArchivo : string; var juego: tipoJuego; var jugadas: tipoJugadas);
+procedure faseExtraccionValores(nombreArchivo : string; var juego: tipoJuego);
 var
     entrada: text;    
     s: string;
@@ -217,7 +204,6 @@ begin
     cartonIndex := 1;
     filaIndex := 1;
     numeroIndex := 1;
-    jugadas.elementos := 1;
 
     while not EOF(entrada) do         
     begin
@@ -243,37 +229,68 @@ begin
             end
             else    
                 faseExtraccionJugadores(juego, jugadorIndex, cartonIndex, filaIndex, numeroIndex, s);
-        end
-        else
-            {faseExtraccionJugadasBingo(jugadas, s);   }
+        end;
     end;
     close(entrada);             
 end;
 
 
-procedure tomaJugada(var jugadas: tipoJugadas; var juego: tipoJuego);
+function esJugadaUnica(jugadas: jugadas_bingo; numero: string; color: tipo_color): boolean;
 var
-    i, j, k, m, n: integer;
+    y: integer;
+begin
+    for y := 1 to jugadas.numJugadas do
+    begin
+        if (jugadas.lista_jugadas_impl[y].jugada = numero) and 
+           (jugadas.lista_jugadas_impl[y].color = color) then
+        begin
+            esJugadaUnica := false; { Si encuentra coincidencia, no es única }
+            exit;
+        end;
+    end;
+    esJugadaUnica := true; { Si no hay coincidencias, es única }
+end;
+
+
+
+
+procedure tomaJugada(var juego: tipoJuego);
+var
+    j, k, m, n: integer;
 
     {Variables random}
     numero_jugada: string;
     numero_jugada_num: integer;
     color_jugada: tipo_color;
 
-    { variable de los jugadores que han tachado}
+    {Variables de los jugadores}
     color_jugador: tipo_color;
     numero_jugador: string;
 
+    bingo_jugador: boolean;
+    jugadas_bingo_impl: jugadas_bingo;
 begin
     Randomize;
-    
-    for i := 1 to 10 do
-    begin
-        
-        numero_jugada_num := Random(100);
-        Str(numero_jugada_num, numero_jugada);
 
-        color_jugada := tipo_color(Random(Ord(High(tipo_color)) + 1));
+    jugadas_bingo_impl.numJugadas := 0;
+    bingo_jugador := false;
+
+    while bingo_jugador = false do
+    begin
+        repeat
+            { Generar una jugada aleatoria }
+            numero_jugada_num := Random(100);
+            Str(numero_jugada_num, numero_jugada);
+            color_jugada := tipo_color(Random(Ord(High(tipo_color)) + 1));
+        until esJugadaUnica(jugadas_bingo_impl, numero_jugada, color_jugada);
+
+        { Agregar jugada al registro de jugadas únicas }
+        jugadas_bingo_impl.numJugadas := jugadas_bingo_impl.numJugadas + 1;
+        jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].jugada := numero_jugada;
+        jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].color := color_jugada;
+
+        writeln('Jugada nueva: ', numero_jugada, ' y color ', Ord(color_jugada));
+
         writeln('');
         writeln('');
         writeln('');
@@ -297,10 +314,12 @@ begin
                         if (numero_jugador = numero_jugada) and (color_jugador = color_jugada) then
                         begin 
                             writeln('Jugador ', j, ' ha tachado');
+                            juego.jugadores[j].cartones[k].filas[m].numeros[n] := 'XX';
                             if comprobarBingo(juego.jugadores[j].cartones[k]) then
                             begin
+                                
                                 writeln('Jugador ', j, ' ha hecho bingo');
-                                juego.jugadores[j].cartones[k].filas[m].numeros[n] := 'XX';
+                                bingo_jugador := true;
                             end;
                         end;
                     end;
@@ -347,12 +366,12 @@ end;
 var
     nombreArchivo: string = 'datos.txt';
     juego: tipoJuego;
-    jugadas: tipoJugadas;
+    
 begin
     
     writeln('Comienzo de programa en pascal');
-    faseExtraccionValores(nombreArchivo, juego, jugadas);
+    faseExtraccionValores(nombreArchivo, juego);
     imprimirJugadores(juego);
-    tomaJugada(jugadas, juego);
+    tomaJugada(juego);
 end.
 
