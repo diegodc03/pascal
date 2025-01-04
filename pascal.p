@@ -68,7 +68,7 @@ begin
     begin 
         for j := 1 to 5 do
         begin
-            {if carton.filas[i].numeros[j] = -1 then
+            if carton.filas[i].numeros[j] = -1 then
             begin
                 carton_string.filas[i].numeros[j] := 'XX';
             end
@@ -76,10 +76,8 @@ begin
             begin
                 carton_string.filas[i].numeros[j] := '';
                 Str(carton.filas[i].numeros[j], carton_string.filas[i].numeros[j]);
-            end;}
+            end;
             {Escribir el valor del del numero}
-            write(carton.filas[i].numeros[j]);
-            write(' ');
         end;
         writeln();
     end;
@@ -284,6 +282,7 @@ begin
                     if filaIndex = 3 then
                     begin
                         cartonIndex := cartonIndex + 1;
+                        juego.jugadores[jugadorIndex].numCartones := juego.jugadores[jugadorIndex].numCartones + 1;
                         filaIndex := 1;
                         colorFilaCompleto := false;
                     end
@@ -313,8 +312,6 @@ var
     cartonIndex: integer; { counter carton --> de 1 a 100}
     filaIndex : integer; { counter fila  --> tienen que ser 3}
     numeroIndex : integer; { counter numero  --> tienen que ser 5}
-    {todos estos valores se le iran pasando a faseExtraccionJugadores para saber donde introducirlos}
-    carton_string_def: carton_string;
 
     finLecturaJugadores: boolean;
     tempLecturaJugadores: integer;
@@ -335,30 +332,27 @@ begin
         readln(entrada,s);
         if finLecturaJugadores = false then
         begin
-            writeln('Tengo los valores de la linea', numeroIndex, ' fila index ', filaIndex);
             if s = 'FIN' then
             begin
-                tempLecturaJugadores := tempLecturaJugadores + 1;
-                writeln('Finalizacion Temp lectura jugadores: ', tempLecturaJugadores);
+                if tempLecturaJugadores < 3 then
+                begin
+                    tempLecturaJugadores := tempLecturaJugadores + 1;
+                end;
                 
                 jugadorIndex := jugadorIndex + 1;
                 cartonIndex := 1;
                 filaIndex := 1;
-                numeroIndex := 0;
-                
+                numeroIndex := 1;
 
-                if tempLecturaJugadores = 1 then
+                if tempLecturaJugadores = 3 then
                     finLecturaJugadores := true;
-                    imprimirCarton(juego.jugadores[1].cartones[1], carton_string_def);
              
             end
             else    
                 faseExtraccionJugadores(juego, jugadorIndex, cartonIndex, filaIndex, numeroIndex, s);
-                writeln('Soy el jugador: ', jugadorIndex, ' Carton: ', cartonIndex, ' Fila: ', filaIndex, ' Numero: ', numeroIndex);
         end
         else
             {faseExtraccionJugadasBingo(jugadas, s);   }
-            writeln('Jugadas: que se van a realizar sera lo proximo');
     end;
     close(entrada);             
 end;
@@ -377,19 +371,23 @@ var
     carton_string_def: carton_string;
 
 begin
-    { Se hace un while recorriendo el array de jugadas, y se va mostrando cada jugada}
-    for i := 1 to jugadas.elementos do
-    begin
-        { Tengo en cada jugada el numero y el color, tengo que ir comprobando si hay valores en los cartones}
-        writeln('Jugada: ', jugadas.jugadas[i].numero, ' ', jugadas.jugadas[i].color);
-        
-        { Se hace un while de las los jugadores , luego de los cartones y dentro de los cartones hacer un bucle de las filas y de los numeros}
-        { Se va comprobando si hay valores en los cartones, si hay valores se va tachando y se va comprobando si hay bingo}
-        { Si hay bingo se muestra el carton y se muestra como ha ido desde el primer valor tachado hasta el ultimo}
-        { Si no hay bingo se muestra los jugadores que han tachado}
+    Randomize;
 
-        color_jugada := jugadas.jugadas[i].color;
-        numero_jugada := jugadas.jugadas[i].numero;
+    
+    { Se hace un while recorriendo el array de jugadas, y se va mostrando cada jugada}
+    for i := 1 to 10 do
+    begin
+        
+        {color_jugada := jugadas.jugadas[i].color;
+        numero_jugada := jugadas.jugadas[i].numero;}
+        
+        numero_jugada := Random(100);
+
+        { Genera un índice aleatorio entre 0 y el número de elementos - 1 }
+        color_jugada := tipo_color(Random(Ord(High(tipo_color)) + 1));
+
+        
+        writeln('Jugada: ', numero_jugada, ' ', color_jugada);
 
         for j := 1 to 3 do
         begin
@@ -427,7 +425,7 @@ begin
     for i := 1 to 3 do
     begin
         writeln('Jugador ', i);
-        for j := 1 to 1 do
+        for j := 1 to juego.jugadores[i].numCartones do
         begin
             for k := 1 to 3 do
             begin
@@ -451,13 +449,10 @@ var
     juego: tipoJuego;
     jugadas: tipoJugadas;
 begin
+    
     writeln('Comienzo de programa en pascal');
     faseExtraccionValores(nombreArchivo, juego, jugadas);
-    {imprimirJugadores(juego);}
-    {tomaJugada(jugadas, juego);}
+    imprimirJugadores(juego);
+    tomaJugada(jugadas, juego);
 end.
-
-
-
-
 
