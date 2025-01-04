@@ -1,0 +1,19 @@
+azul 3 2 
+10 12 32
+amarillo 3 4 
+5 2 50
+FIN
+rojo 10 
+20 30 
+40 
+50
+verde 60 70 80 90 100
+amarillo 5 10 15 20 25
+FIN
+amarillo 1 2 3 4 5
+rojo 6 7 8 9 10
+verde 11 12 13 14 15
+FIN
+rojo 3
+verde 50
+amarillo 7

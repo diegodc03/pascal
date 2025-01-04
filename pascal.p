@@ -34,6 +34,8 @@ type
         jugadores: array[1..3] of jugador;
     end;
 
+
+
     { Jugadas de bingo }
     tipoJugada = record
         numero: integer;
@@ -75,14 +77,14 @@ begin
     colorFilaCompleto := false;
 
 
-    while (i <= length(entrada)) do
+    for i := 1 to length(entrada) do
     begin
         
         if entrada[i] in ['A'..'Z'] then
             exit; {Si hay mayúsculas, se sale de la función}
         
         
-        if entrada[i] = '' then
+        if entrada[i] = ' ' then
         begin
             {Se comprueba se hay elementos a añadir a las variables, o colorString o temp}
             if (colorString <> '') and (colorFilaCompleto = false) then
@@ -119,23 +121,21 @@ begin
                 jugadas.jugadas[jugadas.elementos].numero := valor;
                 jugadas.elementos := jugadas.elementos + 1; 
                 temp := '';
-            end;
-
-            
+            end;    
+        end
+        else if entrada[i] in ['0'..'9'] then
+        begin
+            temp := temp + entrada[i];
+        end
+        else if entrada[i] in ['a'..'z'] then
+        begin
+            colorString := colorString + entrada[i];
         end;
     end;
-
-    if entrada[i] in ['0'..'9'] then
-    begin
-        temp := temp + entrada[i];
-        i := i + 1;
-    end
-    else if entrada[i] in ['a'..'z'] then
-    begin
-        colorString := colorString + entrada[i];
-        i := i + 1;
-    end
 end;
+
+
+
 
 
 
@@ -151,19 +151,21 @@ var
 begin
     temp := '';
     { De Cada linea se extraen los valores de cada linea y a partir de ahí se introduciran valores}
-    i := 1;
     {Se extrae color si existe}
     colorString := '';
     colorFilaCompleto := false;
-
-    while (i <= length(entrada)) do
+    writeln('Entrada: ', entrada);
+    
+    for i := 1 to length(entrada) do
     begin
-
+        
         if entrada[i] in ['A'..'Z'] then
             exit; {Si hay mayúsculas, se sale de la función}
         
-        if entrada[i] = '' then
+        if entrada[i] = ' ' then
         begin
+            writeln('valor: ', colorString);
+          
             {Se comprueba se hay elementos a añadir a las variables, o colorString o temp}
             if (colorString <> '') and (colorFilaCompleto = false) then
             begin
@@ -180,6 +182,7 @@ begin
 
                 {Se asigna el color al jugador}
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].color := color;
+                writeln(juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].color);
                 colorString := '';
                 colorFilaCompleto := true;
             end
@@ -198,27 +201,17 @@ begin
 
                 temp := '';
             end;
-        end;
-    end;
-
-        {Puede existir un valor numerico o uno alfabetico en las posiciones, esto quiere decir que hay que comprobar las dos cosas
-            Si existe un valor numérico se avanza en el indice de la cadena añadiendolo a temp
-            Si existe un valor alfabetico se avanza en el indice de la cadena añadiendo el valor a colorString
-            
-            cuando llegue el final va a haber un " " que va a ser el final de ese número o color entonces se va a añadir a la variable}
-
-        if entrada[i] in ['0'..'9'] then
+        end
+        else if entrada[i] in ['0'..'9'] then
         begin
             temp := temp + entrada[i];
-            i := i + 1;
-       
         end
         else if entrada[i] in ['a'..'z'] then
         begin
             colorString := colorString + entrada[i];
-            i := i + 1;
- 
+            writeln('ColorString: ', colorString);
         end
+    end;
 end;
 
 
@@ -251,13 +244,15 @@ begin
     while not EOF(entrada) do         
     begin
         readln(entrada,s);
-
         if finLecturaJugadores = false then
         begin
+        
             if s = 'FIN' then
             begin
                 tempLecturaJugadores := tempLecturaJugadores + 1;
+                writeln('Finalizacion Temp lectura jugadores: ', tempLecturaJugadores);
                 jugadorIndex := jugadorIndex + 1;
+                writeln('Jugador Index: ', jugadorIndex);
                 
                 {Se reinician los valores si los valores estan en maximo de fila y numero}
                 if (filaIndex >= 3) and (numeroIndex > 5) then
@@ -267,14 +262,16 @@ begin
                     numeroIndex := 0;
                 end;
 
-                if tempLecturaJugadores = 3 then
+                if tempLecturaJugadores = 1 then
                     finLecturaJugadores := true;
             end
             else    
+                writeln('Soy el jugador: ', jugadorIndex, ' Carton: ', cartonIndex, ' Fila: ', filaIndex, ' Numero: ', numeroIndex);
                 faseExtraccionJugadores(juego, jugadorIndex, cartonIndex, filaIndex, numeroIndex, s)
         end
         else
-            faseExtraccionJugadasBingo(jugadas, s);   
+            {faseExtraccionJugadasBingo(jugadas, s);   }
+            writeln('Jugadas: que se van a realizar sera lo proximo');
     end;
     close(entrada);             
 end;
@@ -374,7 +371,8 @@ begin
 
         for j := 1 to 3 do
         begin
-            for k := 1 to juego.jugadores[j].numCartones do
+            {for k := 1 to juego.jugadores[j].numCartones do}
+            for k := 1 to 1 do
             begin
                 for m := 1 to 3 do
                 begin
@@ -400,6 +398,28 @@ begin
 end;
 
 
+procedure imprimirJugadores(juego: tipoJuego);
+var
+    i, j, k, m: integer;
+begin
+    for i := 1 to 3 do
+    begin
+        writeln('Jugador ', i);
+        for j := 1 to 1 do
+        begin
+            for k := 1 to 3 do
+            begin
+                for m := 1 to 5 do
+                begin
+                    write(juego.jugadores[i].cartones[j].filas[k].numeros[m], ' ');
+                end;
+                writeln();
+            end;
+            writeln();
+        end;
+    end;
+end;
+
 
 {
   Comienzo de programa en pascal, como principio de programa se lee el fichero
@@ -411,26 +431,11 @@ var
 begin
     writeln('Comienzo de programa en pascal');
     faseExtraccionValores(nombreArchivo, juego, jugadas);
-    tomaJugada(jugadas, juego);
+    {imprimirJugadores(juego);}
+    {tomaJugada(jugadas, juego);}
 end.
 
 
 
 
-{
-    Despues de haber introducido los valores en el array de jugadores y jugadas, se procede a realizar el juego
-}
 
-{
-    se tiene que hacer un bucle con todas las jugadas, y con cada jugada se tiene que ir comprobando si hay valores en los cartones
-    si hay valores en los cartones se tiene que ir comprobando si hay bingo y escribiendo cada carton de como va quedando
-    tiene que ir mostrando en cada jugada los jugadores que han tachado
-        Jugador 1: Nada.
-        Jugador 2: Nada.
-        Jugador 3: Tachado.
-
-    Si hay bingo se tiene que mostrar el carton y como ha ido desde el primer valor tachado hasta el ultimo
-        Jugador 1: Bingo.
-        Jugador 2: Nada.
-        Jugador 3: Nada.    
-}
