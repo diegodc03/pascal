@@ -1,1 +1,6 @@
 rojo 3 20 10 12 8
+azul 3 2
+10 12 32
+amarillo 3 4 
+5 2 50
+FIN
