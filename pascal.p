@@ -14,11 +14,11 @@ type
     { Tipo de dato que representa un jugador necesito 3 jugadores array de 3, pero eso va a ser tipo de dato juego
     a su vez, cada jugador tiene un array de cartones, y cada carton tiene un array de filas, y cada fila tiene un array de numeros
     }
-    tipo_color = (rojo, verde, azul, amarillo, ninguno);
+    tipo_color = (rojo, verde, azul, amarillo);
 
     fila_carton = record
         color: tipo_color;
-        numeros: array[1..5] of integer;
+        numeros: array[1..5] of string;
     end;
 
     carton = record
@@ -60,7 +60,7 @@ type
     end;
 
 
-procedure imprimirCarton(carton: carton; var carton_string: carton_string);
+procedure imprimirCarton(carton: carton);
 var
     i, j: integer;
 begin
@@ -68,48 +68,26 @@ begin
     begin 
         for j := 1 to 5 do
         begin
-            if carton.filas[i].numeros[j] = -1 then
-            begin
-                carton_string.filas[i].numeros[j] := 'XX';
-            end
-            else
-            begin
-                carton_string.filas[i].numeros[j] := '';
-                Str(carton.filas[i].numeros[j], carton_string.filas[i].numeros[j]);
-            end;
-            {Escribir el valor del del numero}
+            write(carton.filas[i].numeros[j], ' ');
         end;
         writeln();
     end;
 end;
 
 
-procedure imprimirBingo(carton_string: carton_string);
-var 
-    i, j: integer;
-begin
-    for i := 1 to 3 do
-    begin
-        for j := 1 to 5 do
-        begin
-            write(carton_string.filas[i].numeros[j], 'XX');
-        end;
-        writeln();
-    end;
-end;
+
 
 
 function comprobarBingo(carton: carton): boolean;
 var
     i, j, contador: integer;
-    carton_string_def: carton_string;
 begin
     contador := 0;
     for i := 1 to 3 do
     begin
         for j := 1 to 5 do
         begin
-            if carton.filas[i].numeros[j] = -1 then
+            if carton.filas[i].numeros[j] = 'XX' then
                 contador := contador + 1;
         end;
     end;
@@ -117,89 +95,11 @@ begin
     if contador = 15 then
     begin
         comprobarBingo := true;
-        imprimirCarton(carton, carton_string_def);
-        imprimirBingo(carton_string_def);
+        imprimirCarton(carton);
     end
     else
     begin
         comprobarBingo := false;
-    end;
-end;
-
-
-
-
-procedure faseExtraccionJugadasBingo(var jugadas: tipoJugadas; entrada: string);
-var
-    i, valor: integer;
-    colorString: string;
-    color: tipo_color;
-    temp: string;
-    colorFilaCompleto: boolean;
-
-begin
-    temp := '';
-    { De Cada linea se extraen los valores de cada linea y a partir de ahí se introduciran valores}
-    i := 1;
-    {Se extrae color si existe}
-    colorString := '';
-    colorFilaCompleto := false;
-
-
-    for i := 1 to length(entrada) do
-    begin
-        
-        if entrada[i] in ['A'..'Z'] then
-            exit; {Si hay mayúsculas, se sale de la función}
-        
-        
-        if entrada[i] = ' ' then
-        begin
-            {Se comprueba se hay elementos a añadir a las variables, o colorString o temp}
-            if (colorString <> '') and (colorFilaCompleto = false) then
-            begin
-                if colorString = 'rojo' then
-                begin
-                    color := rojo;
-                end
-                else if colorString = 'verde' then
-                begin
-                    color := verde;
-                end
-                else if colorString = 'azul' then
-                begin
-                    color := azul;
-                end
-                else if colorString = 'amarillo' then
-                begin
-                    color := amarillo;
-                end
-                else
-                begin
-                    exit; {Si no es ninguno de los colores, se sale de la función}  
-                end;
-                
-                {Se asigna el color al jugador}
-                jugadas.jugadas[jugadas.elementos].color := color;
-                colorString := '';
-                colorFilaCompleto := true;
-            end
-            else if temp <> '' then
-            begin
-                val(temp, valor);
-                jugadas.jugadas[jugadas.elementos].numero := valor;
-                jugadas.elementos := jugadas.elementos + 1; 
-                temp := '';
-            end;    
-        end
-        else if entrada[i] in ['0'..'9'] then
-        begin
-            temp := temp + entrada[i];
-        end
-        else if entrada[i] in ['a'..'z'] then
-        begin
-            colorString := colorString + entrada[i];
-        end;
     end;
 end;
 
@@ -211,28 +111,25 @@ end;
 {Se le va a dar cada linea del archivo de texto, y se va a extraer los valores de cada linea}
 procedure faseExtraccionJugadores(var juego: tipoJuego; var jugadorIndex: integer; var cartonIndex: integer; var filaIndex: integer; var numeroIndex: integer; entrada: string);
 var
-    i, valor: integer;
+    i: integer;
     colorString: string;
     color: tipo_color;
     temp: string;
-
     colorFilaCompleto: boolean;
+
 begin
+
     temp := '';
-    { De Cada linea se extraen los valores de cada linea y a partir de ahí se introduciran valores}
-    {Se extrae color si existe}
     colorString := '';
     colorFilaCompleto := false;
-    writeln('Entrada: ', entrada);
-    
+
     for i := 1 to length(entrada) do
     begin
         if entrada[i] in ['A'..'Z'] then
-            exit; {Si hay mayúsculas, se sale de la función}
+            exit;
         
         if (entrada[i] = ' ') then
         begin
-            {Se comprueba se hay elementos a añadir a las variables, o colorString o temp}
             if (colorString <> '') and (colorFilaCompleto = false) then
             begin
                 if colorString = 'rojo' then
@@ -244,18 +141,16 @@ begin
                 else if colorString = 'amarillo' then
                     color := amarillo
                 else
-                    exit; {Si no es ninguno de los colores, se sale de la función}  
+                    exit; 
 
-                {Se asigna el color al jugador}
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].color := color;
                 colorString := '';
                 colorFilaCompleto := true;
             end
             else if temp <> '' then
             begin
-                val(temp, valor);
-                juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := valor;
-                writeln(juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex]);
+         
+                juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
                 numeroIndex := numeroIndex + 1;
                 temp := '';
             end;
@@ -266,15 +161,10 @@ begin
 
             if i = length(entrada) then
             begin
-                val(temp, valor);
-                
-                juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := valor;
-                writeln(juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex]);
+                juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
                 numeroIndex := numeroIndex + 1;
-                writeln('NumeroIndex: ', numeroIndex);
-            end;
-
-            if numeroIndex > 5 then
+            
+                if numeroIndex > 5 then
                 begin
                     numeroIndex := 1;
                     colorFilaCompleto := false;
@@ -292,6 +182,7 @@ begin
                     end;
 
                 end;
+            end;
 
         end
         else if entrada[i] in ['a'..'z'] then
@@ -317,6 +208,7 @@ var
     tempLecturaJugadores: integer;
 
 begin
+
     assign(entrada, nombreArchivo);
     reset(entrada);
     tempLecturaJugadores := 0;
@@ -339,6 +231,7 @@ begin
                     tempLecturaJugadores := tempLecturaJugadores + 1;
                 end;
                 
+
                 jugadorIndex := jugadorIndex + 1;
                 cartonIndex := 1;
                 filaIndex := 1;
@@ -361,67 +254,72 @@ end;
 procedure tomaJugada(var jugadas: tipoJugadas; var juego: tipoJuego);
 var
     i, j, k, m, n: integer;
+
+    {Variables random}
+    numero_jugada: string;
+    numero_jugada_num: integer;
     color_jugada: tipo_color;
-    numero_jugada: integer;
 
     { variable de los jugadores que han tachado}
-    numero_tachado: integer;
     color_jugador: tipo_color;
-
-    carton_string_def: carton_string;
+    numero_jugador: string;
 
 begin
     Randomize;
-
     
-    { Se hace un while recorriendo el array de jugadas, y se va mostrando cada jugada}
     for i := 1 to 10 do
     begin
         
-        {color_jugada := jugadas.jugadas[i].color;
-        numero_jugada := jugadas.jugadas[i].numero;}
-        
-        numero_jugada := Random(100);
+        numero_jugada_num := Random(100);
+        Str(numero_jugada_num, numero_jugada);
 
-        { Genera un índice aleatorio entre 0 y el número de elementos - 1 }
         color_jugada := tipo_color(Random(Ord(High(tipo_color)) + 1));
-
-        
+        writeln('');
+        writeln('');
+        writeln('');
         writeln('Jugada: ', numero_jugada, ' ', color_jugada);
-
+        writeln('');
         for j := 1 to 3 do
         begin
-            {for k := 1 to juego.jugadores[j].numCartones do}
-            for k := 1 to 1 do
+            writeln('');
+            writeln('Jugador ', j);
+            for k := 1 to juego.jugadores[j].numCartones do
             begin
+                writeln('');
+
                 for m := 1 to 3 do
                 begin
                     color_jugador := juego.jugadores[j].cartones[k].filas[m].color;
                     for n := 1 to 5 do
                     begin
-                        numero_tachado := juego.jugadores[j].cartones[k].filas[m].numeros[n];
-                        if (numero_tachado = numero_jugada) and (color_jugador = color_jugada) then
+                        numero_jugador := juego.jugadores[j].cartones[k].filas[m].numeros[n];
+                        
+                        if (numero_jugador = numero_jugada) and (color_jugador = color_jugada) then
                         begin 
                             writeln('Jugador ', j, ' ha tachado');
                             if comprobarBingo(juego.jugadores[j].cartones[k]) then
                             begin
                                 writeln('Jugador ', j, ' ha hecho bingo');
-                                juego.jugadores[j].cartones[k].filas[m].numeros[n] := -1;
+                                juego.jugadores[j].cartones[k].filas[m].numeros[n] := 'XX';
                             end;
                         end;
                     end;
                 end;
-                imprimirCarton(juego.jugadores[j].cartones[k], carton_string_def);
+                imprimirCarton(juego.jugadores[j].cartones[k]);
             end;
         end;
     end;
 end;
 
 
+
 procedure imprimirJugadores(juego: tipoJuego);
 var
     i, j, k, m: integer;
 begin
+    writeln('');
+    writeln('Imprimiendo los jugadores con sus cartones');
+
     for i := 1 to 3 do
     begin
         writeln('Jugador ', i);
@@ -429,6 +327,8 @@ begin
         begin
             for k := 1 to 3 do
             begin
+                write(juego.jugadores[i].cartones[j].filas[k].color, ' -->  ');
+                
                 for m := 1 to 5 do
                 begin
                     write(juego.jugadores[i].cartones[j].filas[k].numeros[m], ' ');
