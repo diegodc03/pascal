@@ -186,21 +186,6 @@ begin
     end;
 end;
 
-procedure imprimir_carton_txt(var fichero: text; carton: carton);
-var
-    i, j: integer;
-begin
-    for i := 1 to MAX_FILAS_CARTON do
-    begin 
-        write(fichero, carton.filas[i].color, ' -->  ');
-        for j := 1 to MAX_NUMEROS_FILA do
-        begin
-            write(fichero, carton.filas[i].numeros[j], ' ');
-        end;
-        writeln(fichero);
-    end;
-end;
-
 function faseExtraccionJugadores(var juego: tipoJuego; var jugadorIndex: integer; var cartonIndex: integer; var filaIndex: integer; var numeroIndex: integer; entrada: string):boolean;
 var
     i: integer;
@@ -470,15 +455,11 @@ begin
         exit;
     end;    
     juego_inicio := juego;
-
-    writeln('Juego duplicado');
-    imprimirJugadores(juego_inicio);
-
+    
     writeln('Juego original');
     imprimirJugadores(juego);
 
     tomaJugada(juego, jugador_ganador_bingo, jugadas_bingo_impl);
-
     writeln('');
     writeln('');
     writeln('');
