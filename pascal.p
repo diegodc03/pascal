@@ -13,6 +13,11 @@ const
     MAX_NUMEROS_FILA = 5;
     MAX_JUGADORES = 3;
 
+    MIN_VALOR_BINGO = 0;
+    MAX_VALOR_BINGO = 100;
+
+    MAX_NUM_BINGO = 401;
+
 type
     { Tipo de dato que representa un jugador necesito 3 jugadores array de 3, pero eso va a ser tipo de dato juego
     a su vez, cada jugador tiene un array de cartones, y cada carton tiene un array de filas, y cada fila tiene un array de numeros
@@ -29,7 +34,6 @@ type
     end;
 
     jugador = record
-        nombre: string;
         cartones: array[1..MAX_CARTONES] of carton;
         numCartones: integer;
     end;
@@ -44,7 +48,7 @@ type
     end;
 
     jugadas_bingo = record
-        lista_jugadas_impl: array[1..400] of lista_jugadas;
+        lista_jugadas_impl: array[1..MAX_NUM_BINGO] of lista_jugadas;
         numJugadas: integer;
     end;
 
@@ -63,10 +67,6 @@ begin
         writeln();
     end;
 end;
-
-
-
-
 
 function comprobarBingo(carton: carton): boolean;
 var
@@ -120,50 +120,107 @@ begin
     end;
 end;
 
-function comprobarNumeros(var juego: tipoJuego; jugadorIndex: integer; cartonIndex: integer; numero: string): boolean;
-var 
-    filaIndex, numeroIndex, num: integer;
-begin    
-    {Se comprueba si el numero ya ha sido introducido en el carton, por lo que recorremos unicamente el carton actual del jugador x}
-    {Pasar numero a numerico}
-    Val(numero, num);
-    if (num > 99) or (num < 0) then
+procedure duplicarJuego(juego: tipoJuego; var juego_inicio: tipoJuego);
+var
+    i, j, k, m: integer;
+begin
+    for i := 1 to MAX_JUGADORES do
     begin
-        comprobarNumeros := true;
-        exit;
-    end;
-
-    for filaIndex := 1 to MAX_FILAS_CARTON do
-    begin
-        for numeroIndex := 1 to MAX_NUMEROS_FILA do
+        juego_inicio.jugadores[i].numCartones := juego.jugadores[i].numCartones;
+        for j := 1 to juego.jugadores[i].numCartones do
         begin
-            if juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] = numero then
+            for k := 1 to MAX_FILAS_CARTON do
             begin
-                comprobarNumeros := true;
-                exit;
+                juego_inicio.jugadores[i].cartones[j].filas[k].color := juego.jugadores[i].cartones[j].filas[k].color;
+                for m := 1 to MAX_NUMEROS_FILA do
+                begin
+                    juego_inicio.jugadores[i].cartones[j].filas[k].numeros[m] := juego.jugadores[i].cartones[j].filas[k].numeros[m];
+                end;
             end;
         end;
     end;
 end;
 
-procedure faseExtraccionJugadores(var juego: tipoJuego; var jugadorIndex: integer; var cartonIndex: integer; var filaIndex: integer; var numeroIndex: integer; entrada: string);
+procedure mostrar_Jugadas_bingo_ganadoras(jugadas: jugadas_bingo; carton_ganador: carton);
+var
+    i: integer;
+begin
+    writeln('Jugadas ganadoras:');
+    for i := 1 to jugadas.numJugadas do
+    begin
+        if (jugadas.lista_jugadas_impl[i].jugada = carton_ganador.filas[1].numeros[1]) and
+           (jugadas.lista_jugadas_impl[i].color = carton_ganador.filas[1].color) then
+        begin
+            carton_ganador.filas[1].numeros[1] := 'XX';
+        end;
+        {Se muestra el carton modificado}
+        imprimirCarton(carton_ganador);
+    end;
+    writeln('Carton ganador:');
+    imprimirCarton(carton_ganador);
+end;
+
+function comprobarNumeros(var juego: tipoJuego; jugadorIndex: integer; cartonIndex: integer; numero: string): boolean;
+var 
+    filaIndex, numeroIndex, num: integer;
+    comprobacionNumero: boolean;
+begin    
+    comprobacionNumero := false;
+    comprobarNumeros := false;
+    {Se comprueba si el numero ya ha sido introducido en el carton, por lo que recorremos unicamente el carton actual del jugador x}
+    {Pasar numero a numerico}
+    Val(numero, num);
+    if (num >= MAX_VALOR_BINGO) or (num < MIN_VALOR_BINGO) then
+    begin
+        comprobacionNumero := true;
+        writeln('Numero fuera de rango, tienen que estar todos entre 0 y 99 inclusive');
+    end
+    else
+    begin
+        for filaIndex := 1 to MAX_FILAS_CARTON do
+        begin
+            for numeroIndex := 1 to MAX_NUMEROS_FILA do
+            begin
+                if juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] = numero then
+                begin
+                    comprobacionNumero := true;
+                    writeln('Numero repetido en el carton');
+                    break;
+                end;
+            end;
+        end;
+    end;
+
+    if comprobacionNumero = true then
+    begin
+        comprobarNumeros := true;
+    end;
+    
+    
+end;
+
+function faseExtraccionJugadores(var juego: tipoJuego; var jugadorIndex: integer; var cartonIndex: integer; var filaIndex: integer; var numeroIndex: integer; entrada: string):boolean;
 var
     i: integer;
     colorString: string;
     color: tipo_color;
     temp: string;
     colorFilaCompleto: boolean;
-    numero_erroneo: boolean;
+    error_jugador: boolean;
 begin
-    numero_erroneo := false;
+    error_jugador := false;
     temp := '';
     colorString := '';
     colorFilaCompleto := false;
+    faseExtraccionJugadores := true;
 
     for i := 1 to length(entrada) do
     begin
         if entrada[i] in ['A'..'Z'] then
-            exit;
+        begin
+            error_jugador := true;
+            break;
+        end;
         
         if (entrada[i] = ' ') then
         begin
@@ -178,7 +235,11 @@ begin
                 else if colorString = 'amarillo' then
                     color := amarillo
                 else
-                    exit; 
+                begin
+                    writeln('Color no valido');
+                    error_jugador := true;
+                    break;
+                end;
                 
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].color := color;
                 colorString := '';
@@ -189,9 +250,8 @@ begin
                 
                 if comprobarNumeros(juego, jugadorIndex, cartonIndex, temp) then
                 begin
-                    writeln('Numero repetido en el carton');
-                    numero_erroneo := true;
-                    exit;
+                    error_jugador := true;
+                    break;
                 end;
          
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
@@ -208,9 +268,8 @@ begin
 
                 if comprobarNumeros(juego, jugadorIndex, cartonIndex, temp) then
                 begin
-                    writeln('Numero repetido en el carton');
-                    numero_erroneo := true;
-                    exit;
+                    error_jugador := true;
+                    break;
                 end;
 
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
@@ -241,16 +300,15 @@ begin
         end
     end;
 
-    if numero_erroneo = true then
+    if error_jugador = true then
     begin
-        writeln('error en el numero a añadir');
-        exit;
+        faseExtraccionJugadores := false;
     end;
 end;
 
 
 
-procedure faseExtraccionValores(nombreArchivo : string; var juego: tipoJuego);
+function faseExtraccionValores(nombreArchivo : string; var juego: tipoJuego): boolean;
 var
     entrada: text;    
     s: string;
@@ -263,6 +321,7 @@ var
     finLecturaJugadores: boolean;
     tempLecturaJugadores: integer;
 
+
 begin
 
     assign(entrada, nombreArchivo);
@@ -273,7 +332,7 @@ begin
     cartonIndex := 1;
     filaIndex := 1;
     numeroIndex := 1;
-
+    faseExtraccionValores := true;
     while not EOF(entrada) do         
     begin
         readln(entrada,s);
@@ -295,7 +354,14 @@ begin
                     finLecturaJugadores := true;
             end
             else    
-                faseExtraccionJugadores(juego, jugadorIndex, cartonIndex, filaIndex, numeroIndex, s);
+            begin
+                if not faseExtraccionJugadores(juego, jugadorIndex, cartonIndex, filaIndex, numeroIndex, s) then
+                begin
+                    faseExtraccionValores := false;
+                    exit;
+                end;
+                
+            end;
         end;
     end;
     close(entrada);             
@@ -342,7 +408,7 @@ begin
     while bingo_jugador = false do
     begin
         repeat
-            numero_jugada_num := Random(100);
+            numero_jugada_num := Random(MAX_VALOR_BINGO);
             Str(numero_jugada_num, numero_jugada);
             color_jugada := tipo_color(Random(Ord(High(tipo_color)) + 1));
         until esJugadaUnica(jugadas_bingo_impl, numero_jugada, color_jugada);
@@ -350,8 +416,6 @@ begin
         jugadas_bingo_impl.numJugadas := jugadas_bingo_impl.numJugadas + 1;
         jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].jugada := numero_jugada;
         jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].color := color_jugada;
-
-        writeln('Jugada nueva: ', numero_jugada, ' y color ', Ord(color_jugada));
 
         writeln('');
         writeln('');
@@ -364,7 +428,6 @@ begin
             writeln('Jugador ', j);
             for k := 1 to juego.jugadores[j].numCartones do
             begin
-                writeln('');
 
                 for m := 1 to MAX_FILAS_CARTON do
                 begin
@@ -379,7 +442,7 @@ begin
                             juego.jugadores[j].cartones[k].filas[m].numeros[n] := 'XX';
                             if comprobarBingo(juego.jugadores[j].cartones[k]) then
                             begin
-                                writeln('Jugador ', j, ' ha hecho bingo');
+                                writeln('Jugador ', j, ' ha hecho bingo con carton ', k);
                                 bingo_jugador := true;
                             end;
                         end;
@@ -396,11 +459,26 @@ end;
 }
 var
     nombreArchivo: string = 'datos.txt';
+    juego_inicio: tipoJuego;
     juego: tipoJuego;
 begin
     writeln('Comienzo de programa en pascal');
-    faseExtraccionValores(nombreArchivo, juego);
+
+    if faseExtraccionValores(nombreArchivo, juego) = false then
+    begin
+        exit;
+    end;    
+
+    duplicarJuego(juego, juego_inicio);
+
+    writeln('Juego original');
     imprimirJugadores(juego);
+
+    writeln('Juego duplicado');
+    imprimirJugadores(juego_inicio);
+
     tomaJugada(juego);
+
+    {por ultimo se muestra el juego ganador}
 end.
 
