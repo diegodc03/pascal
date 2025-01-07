@@ -1,25 +1,16 @@
 {$mode objfpc}{$H-}{$R+}{$T+}{$Q+}{$V+}{$D+}{$X-}{$warnings on}
 
-
-program playbingo;
-
-
+program ListaEnlazadaBingo;
 uses crt, sysutils;
 
-
 const
-    MAX_CARTONES = 10;
-    MAX_FILAS_CARTON = 3;
-    MAX_NUMEROS_FILA = 5;
-    MAX_JUGADORES = 3;
-
-    MIN_VALOR_BINGO = 0;
-    MAX_VALOR_BINGO = 100;
-
-    MAX_NUM_BINGO = 401;
+  MAX_NUMEROS_FILA = 5;
+  MAX_FILAS_CARTON = 3;
+  MAX_CARTONES = 2;
+  MAX_JUGADORES = 4;
+  MAX_NUM_BINGO = 10;
 
 type
-    {estructura jugador}
     tipo_color = (rojo, verde, azul, amarillo);
 
     fila_carton = record
@@ -35,11 +26,11 @@ type
         cartones: array[1..MAX_CARTONES] of carton;
         numCartones: integer;
     end;
+
     tipoJuego = record
         jugadores: array[1..MAX_JUGADORES] of jugador;
     end;
 
-    {Jugadas}
     lista_jugadas = record
         jugada: string;
         color: tipo_color;
@@ -50,95 +41,72 @@ type
         numJugadas: integer;
     end;
 
-    {Ganador}
     jugador_ganador = record
         jugador: integer;
         carton: integer;
     end;
 
+{jugadas con lista enlazada}
+    jugada_lista_enlazada = record
+        jugada: string;
+        color: string;
+    end;
 
-program ListaEnlazadaBingo;
+    // Nodo para la lista enlazada de jugadas
+    PNodoJugada = ^NodoJugada;
+    NodoJugada = record
+        jugada: jugada_lista_enlazada;
+        siguiente: PNodoJugada;
+    end;
 
-const
-  MAX_NUMEROS_FILA = 5;
-  MAX_FILAS_CARTON = 3;
-  MAX_CARTONES = 2;
-  MAX_JUGADORES = 4;
-  MAX_NUM_BINGO = 10;
+    // Nodo para guardar la jugada ganadora, es decir, el proceso de hacer bingo
+    PNodoBingo = ^NodoBingo;
+    NodoBingo = record
+        carton_impl: carton;
+        siguiente: PNodoBingo;
+    end;
 
-type
-  tipo_color = (rojo, verde, azul, amarillo);
-
-  fila_carton = record
-    color: tipo_color;
-    numeros: array[1..MAX_NUMEROS_FILA] of string;
-  end;
-
-  carton = record
-    filas: array[1..MAX_FILAS_CARTON] of fila_carton;
-  end;
-
-  jugador = record
-    cartones: array[1..MAX_CARTONES] of carton;
-    numCartones: integer;
-  end;
-
-  tipoJuego = record
-    jugadores: array[1..MAX_JUGADORES] of jugador;
-  end;
-
-  lista_jugadas = record
-    jugada: string;
-    color: tipo_color;
-  end;
-
-  jugadas_bingo = record
-    lista_jugadas_impl: array[1..MAX_NUM_BINGO] of lista_jugadas;
-    numJugadas: integer;
-  end;
-
-  jugador_ganador = record
-    jugador: integer;
-    carton: integer;
-  end;
-
-
-  // Nodo para la lista enlazada de jugadas
-  PNodoJugada = ^NodoJugada;
-  NodoJugada = record
-    jugada: lista_jugadas;
-    siguiente: PNodoJugada;
-  end;
-
-  // Nodo para guardar la jugada ganadora, es decir, el proceso de hacer bingo
-  PNodoBingo = ^NodoBingo;
-  NodoBingo = record
-    carton_impl: carton;
-    siguiente: PNodoBingo;
-  end;
-
-  // Nodo para la lista enlazada de jugadores ganadores
-  PNodoGanador = ^NodoGanador;
-  NodoGanador = record
-    ganador: jugador_ganador;
-    siguiente: PNodoGanador;
-  end;
 
 var
-  cabezaJugadas: PNodoJugada;
-  cabezaGanadores: PNodoGanador;
-  cabezaBingo: PNodoBingo;
+    cabezaJugadas: PNodoJugada;
+    cabezaGanadores: PNodoGanador;
+    cabezaBingo: PNodoBingo;
 
-// Función para agregar jugadas a la lista enlazada de jugadas
-procedure AgregarJugada(var cabeza: PNodoJugada; jugada: lista_jugadas);
+    // Función para agregar jugadas a la lista enlazada de jugadas
+    procedure AgregarJugada(var cabeza: PNodoJugada; jugada: jugada_lista_enlazada);
+    var
+    nuevoNodo: PNodoJugada;
+    begin
+    New(nuevoNodo);
+    nuevoNodo^.jugada := jugada;
+    nuevoNodo^.siguiente := cabeza;
+    cabeza := nuevoNodo;
+    end;
+
+// Funcion para agregar jugada pero en la cola
+procedure AgregarJugadaCola(var cabeza: PNodoJugada; jugada: jugada_lista_enlazada);
 var
-  nuevoNodo: PNodoJugada;
+    nuevoNodo: PNodoJugada;
+    actual: PNodoJugada;
 begin
-  New(nuevoNodo);
-  nuevoNodo^.jugada := jugada;
-  nuevoNodo^.siguiente := cabeza;
-  cabeza := nuevoNodo;
-end;
+    New(nuevoNodo);
+    nuevoNodo^.jugada := jugada;
+    nuevoNodo^.siguiente := nil;
+    
+    if cabeza = nil then
+    begin
+        cabeza := nuevoNodo;
+    end
+    else
+    begin
+        actual := cabeza;
+        while actual^.siguiente <> nil do
+        begin
+        actual := actual^.siguiente;
+        end;
+        actual^.siguiente := nuevoNodo;
+    end;
+    end;
 
 // Procedimiento para mostrar todas las jugadas
 procedure MostrarJugadas(cabeza: PNodoJugada);
@@ -153,29 +121,7 @@ begin
   end;
 end;
 
-// Función para agregar un ganador a la lista enlazada de ganadores
-procedure AgregarGanador(var cabeza: PNodoGanador; ganador: jugador_ganador);
-var
-  nuevoNodo: PNodoGanador;
-begin
-  New(nuevoNodo);
-  nuevoNodo^.ganador := ganador;
-  nuevoNodo^.siguiente := cabeza;
-  cabeza := nuevoNodo;
-end;
 
-// Procedimiento para mostrar todos los ganadores
-procedure MostrarGanadores(cabeza: PNodoGanador);
-var
-  actual: PNodoGanador;
-begin
-  actual := cabeza;
-  while actual <> nil do
-  begin
-    WriteLn('Ganador: Jugador ', actual^.ganador.jugador, ' Cartón ', actual^.ganador.carton);
-    actual := actual^.siguiente;
-  end;
-end;
 
 begin
   cabezaJugadas := nil;
@@ -200,10 +146,6 @@ begin
   // Liberar memoria de las listas
   // Aquí debería incluirse un código para liberar la memoria de las listas
 end.
-
-
-
-
 
 
 
@@ -601,6 +543,81 @@ begin
     end;
 end;
 
+procedure toma_jugada_lista_enlazada(var juego: tipoJuego; var cabeza: PNodoJugada, var jugador_ganador_bingo: jugador_ganador);
+var
+    j, k, m, n: integer;
+
+    {Variables random}
+    numero_jugada: string;
+    numero_jugada_num: integer;
+    color_jugada: tipo_color;
+
+    {Variables de los jugadores}
+    color_jugador: tipo_color;
+    numero_jugador: string;
+
+    bingo_jugador: boolean;
+
+    jugada: jugada_lista_enlazada;
+begin
+    Randomize;
+
+    jugadas_bingo_impl.numJugadas := 0;
+    bingo_jugador := false;
+
+    while bingo_jugador = false do
+    begin
+        repeat
+            numero_jugada_num := Random(MAX_VALOR_BINGO);
+            Str(numero_jugada_num, numero_jugada);
+            color_jugada := tipo_color(Random(Ord(High(tipo_color)) + 1));
+        
+        until esJugadaUnica(jugadas_bingo_impl, numero_jugada, color_jugada);
+
+        // Añadimos jugada a la lista enlazada
+        jugada.jugada := numero_jugada;
+        jugada.color := color_jugada;
+        AgregarJugada(cabeza, jugada);
+
+        writeln('');
+        writeln('');
+        writeln('');
+        writeln('Jugada: ', numero_jugada, ' ', color_jugada);
+        writeln('');
+        for j := 1 to MAX_JUGADORES do
+        begin
+            writeln('');
+            writeln('Jugador ', j);
+            for k := 1 to juego.jugadores[j].numCartones do
+            begin
+
+                for m := 1 to MAX_FILAS_CARTON do
+                begin
+                    color_jugador := juego.jugadores[j].cartones[k].filas[m].color;
+                    for n := 1 to MAX_NUMEROS_FILA do
+                    begin
+                        numero_jugador := juego.jugadores[j].cartones[k].filas[m].numeros[n];
+                        
+                        if (numero_jugador = numero_jugada) and (color_jugador = color_jugada) then
+                        begin 
+                            writeln('Jugador ', j, ' ha tachado');
+                            juego.jugadores[j].cartones[k].filas[m].numeros[n] := 'XX';
+                            if comprobarBingo(juego.jugadores[j].cartones[k]) then
+                            begin
+                                writeln('Jugador ', j, ' ha hecho bingo con carton ', k);
+                                jugador_ganador_bingo.jugador := j;
+                                jugador_ganador_bingo.carton := k;
+                                bingo_jugador := true;
+                            end;
+                        end;
+                    end;
+                end;
+                imprimirCarton(juego.jugadores[j].cartones[k]);
+            end;
+        end;
+    end;
+end;
+
 {
   Comienzo de programa en pascal, como principio de programa se lee el fichero
 }
@@ -611,15 +628,21 @@ var
     jugador_ganador_bingo: jugador_ganador;
     jugadas_bingo_impl: jugadas_bingo;
 
+    jugada_lista_enlazada_impl: jugada_lista_enlazada;
+
     carton_ganador: carton;
 begin
-    writeln('Comienzo de programa en pascal');
+    cabezaJugadas := nil;
+    cabezaGanadores := nil;
 
+    writeln('Comienzo de programa en pascal');
+    
     if faseExtraccionValores(nombreArchivo, juego) = false then
     begin
         exit;
     end;    
     juego_inicio := juego;
+
 
     writeln('Juego duplicado');
     imprimirJugadores(juego_inicio);
@@ -627,8 +650,9 @@ begin
     writeln('Juego original');
     imprimirJugadores(juego);
 
-    tomaJugada(juego, jugador_ganador_bingo, jugadas_bingo_impl);
 
+    toma_jugada_lista_enlazada(juego, cabezaJugadas, jugador_ganador_bingo);
+ 
     writeln('');
     writeln('');
     writeln('');
@@ -637,9 +661,11 @@ begin
     writeln('');
 
     writeln('Jugador ganador: ', jugador_ganador_bingo.jugador, ' con carton ', jugador_ganador_bingo.carton);
+{  
+
     writeln('Se va a mostrar el carton ganador y todas las jugadas que le han hecho ser ganador');
     mostrar_Jugadas_bingo_ganadoras(jugadas_bingo_impl, juego_inicio.jugadores[jugador_ganador_bingo.jugador].cartones[jugador_ganador_bingo.carton], carton_ganador);
-
+}
 {    introducir_jugada_ganadora_txt(jugadas_bingo_impl, juego_inicio.jugadores[jugador_ganador_bingo.jugador].cartones[jugador_ganador_bingo.carton]);}
 end.
 
