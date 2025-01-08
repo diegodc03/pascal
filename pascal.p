@@ -293,7 +293,103 @@ begin
     end;
 end;
 
-function faseExtraccionValores(nombreArchivo : string; var juego: tipoJuego): boolean;
+function esJugadaUnica(jugadas: jugadas_bingo; numero: string; color: tipo_color): boolean;
+var
+    y: integer;
+begin
+    for y := 1 to jugadas.numJugadas do
+    begin
+        if (jugadas.lista_jugadas_impl[y].jugada = numero) and 
+           (jugadas.lista_jugadas_impl[y].color = color) then
+        begin
+            esJugadaUnica := false;
+            exit;
+        end;
+    end;
+    esJugadaUnica := true; 
+end;
+
+function faseExtraccionJugadasBingo(var jugadas_bingo_impl: jugadas_bingo; entrada: string):boolean;
+var
+    i, valor: integer;
+    colorString: string;
+    color: tipo_color;
+    temp: string;
+    colorFilaCompleto: boolean;
+
+    colorTemporal: tipo_color;
+    numero:temporal:string;
+begin
+    temp := '';
+    i := 1;
+    colorString := '';
+    colorFilaCompleto := false;
+
+
+    while (i <= length(entrada)) do
+    begin
+        
+        if entrada[i] in ['A'..'Z'] then
+        begin
+            error_jugador := true;
+            break;
+        end;
+        
+        if (entrada[i] = ' ') then
+        begin
+            if (colorString <> '') and (colorFilaCompleto = false) then
+            begin
+                if colorString = 'rojo' then
+                    color := rojo
+                else if colorString = 'verde' then
+                    color := verde
+                else if colorString = 'azul' then
+                    color := azul
+                else if colorString = 'amarillo' then
+                    color := amarillo
+                else
+                begin
+                    writeln('Color no valido');
+                    error_jugador := true;
+                    break;
+                end;
+                colorFilaCompleto := true;
+            end;
+        end;
+    end;
+
+    if entrada[i] in ['0'..'9'] then
+    begin
+        temp := temp + entrada[i];
+        i := i + 1;
+    end
+    else if entrada[i] in ['a'..'z'] then
+    begin
+        colorString := colorString + entrada[i];
+        i := i + 1;
+
+        if i = length(entrada) then
+        begin
+            if temp <> '' then
+            begin
+                val(temp, valor);
+                
+                if esJugadaUnica(jugadas_bingo_impl, temp, color) then
+                begin
+                    jugadas_bingo_impl.jugadas[jugadas.elementos].color := color;
+                    jugadas_bingo_impl.jugadas[jugadas.elementos].numero := valor;
+                    jugadas_bingo_impl.elementos := jugadas.elementos + 1; 
+                end;
+                temp := '';
+                colorString := '';
+                
+            end;
+            
+        end;
+    end;
+end;
+
+function faseExtraccionValores(nombreArchivo : string; var juego: tipoJuego; var jugadas_bingo_impl: jugadas_bingo): boolean;
 var
     entrada: text;    
     s: string;
@@ -344,25 +440,14 @@ begin
                     exit;
                 end;
             end;
-        end;
-    end;
-    close(entrada);             
-end;
-
-function esJugadaUnica(jugadas: jugadas_bingo; numero: string; color: tipo_color): boolean;
-var
-    y: integer;
-begin
-    for y := 1 to jugadas.numJugadas do
-    begin
-        if (jugadas.lista_jugadas_impl[y].jugada = numero) and 
-           (jugadas.lista_jugadas_impl[y].color = color) then
+        end
+        if not faseExtraccionJugadasBingo(jugadas_bingo, entrada) then
         begin
-            esJugadaUnica := false;
+            faseExtraccionValores := false;
             exit;
         end;
     end;
-    esJugadaUnica := true; 
+    close(entrada);             
 end;
 
 procedure tomaJugada(var juego: tipoJuego; var jugador_ganador_bingo: jugador_ganador; var jugadas_bingo_impl: jugadas_bingo);
@@ -450,7 +535,7 @@ var
 begin
     writeln('Comienzo de programa en pascal');
 
-    if faseExtraccionValores(nombreArchivo, juego) = false then
+    if faseExtraccionValores(nombreArchivo, juego, jugadas_bingo) = false then
     begin
         exit;
     end;    
