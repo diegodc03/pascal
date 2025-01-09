@@ -313,6 +313,7 @@ var
     color: tipo_color;
     temp: string;
     colorFilaCompleto: boolean;
+    temp_num: integer;
 
     error_jugador: boolean;
 
@@ -324,16 +325,22 @@ begin
     colorFilaCompleto := false;
     error_jugador := false;
 
-    writeln('Entrada: ', entrada);
+
     for i := 1 to length(entrada) do
     begin
         if entrada[i] in ['A'..'Z'] then
         begin
+            writeln('Entrada: ', entrada[i], 'no puede haber letras mayusculas');
             error_jugador := true;
             break;
         end;
+
+        {if (i = length(entrada)) and (entrada[i] <> ' ') then
+        begin
+            writeln('En la linea ', entrada, ' hay un espacio en el final');
+        end;}
         
-        if (entrada[i] = ' ') then
+        if (entrada[i] = ' ' ) then
         begin
             if (colorString <> '') and (colorFilaCompleto = false) then
             begin
@@ -358,11 +365,16 @@ begin
         if entrada[i] in ['0'..'9'] then
         begin
             temp := temp + entrada[i];
-
             if i = length(entrada) then
             begin
-                writeln('Temp: ', temp);
-                writeln('Color a añadir: ', colorString);
+                val(temp, temp_num);
+                if (temp_num >= MAX_VALOR_BINGO) or (temp_num < MIN_VALOR_BINGO) then
+                begin
+                    writeln('Numero fuera de rango, tienen que estar todos entre 0 y 99 inclusive');
+                    error_jugador := true;
+                    break;
+                end;
+
                 if (temp <> '') and (colorString <> '') then
                 begin
                     if esJugadaUnica(jugadas_bingo_impl, temp, color) then
@@ -370,7 +382,6 @@ begin
                         jugadas_bingo_impl.numJugadas := jugadas_bingo_impl.numJugadas + 1;
                         jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].color := color;
                         jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].jugada := temp;
-                        writeln('Jugada añadida'); 
                     end
                     else
                     begin
