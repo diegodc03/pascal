@@ -129,10 +129,8 @@ var
 begin
     writeln('Jugadas ganadoras:');
     writeln('Numero de jugadas que han sido necesarias para encontrar un ganador: ', jugadas.numJugadas); 
-    carton_ganador_dev := carton_ganador;
     for i := 1 to jugadas.numJugadas do
     begin
-        carton_ganador_dev.
         for j := 1 to MAX_FILAS_CARTON do
         begin
             for k := 1 to MAX_NUMEROS_FILA do
@@ -147,7 +145,6 @@ begin
                 end;
             end;
         end;
-        
     end;
 end;
 
@@ -227,7 +224,6 @@ begin
                     error_jugador := true;
                     break;
                 end;
-                
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].color := color;
                 colorString := '';
                 colorFilaCompleto := true;
@@ -299,6 +295,7 @@ var
 begin
     for y := 1 to jugadas.numJugadas do
     begin
+        writeln('Jugada: ', jugadas.lista_jugadas_impl[y].jugada);
         if (jugadas.lista_jugadas_impl[y].jugada = numero) and 
            (jugadas.lista_jugadas_impl[y].color = color) then
         begin
@@ -309,26 +306,27 @@ begin
     esJugadaUnica := true; 
 end;
 
-function faseExtraccionJugadasBingo(var jugadas_bingo_impl: jugadas_bingo; entrada: string):boolean;
+function faseExtraccionJugadasBingo(var jugadas_bingo_impl: jugadas_bingo; entrada: string): boolean;
 var
-    i, valor: integer;
+    i: integer;
     colorString: string;
     color: tipo_color;
     temp: string;
     colorFilaCompleto: boolean;
 
-    colorTemporal: tipo_color;
-    numero:temporal:string;
+    error_jugador: boolean;
+
 begin
+    faseExtraccionJugadasBingo := true;
     temp := '';
     i := 1;
     colorString := '';
     colorFilaCompleto := false;
+    error_jugador := false;
 
-
-    while (i <= length(entrada)) do
+    writeln('Entrada: ', entrada);
+    for i := 1 to length(entrada) do
     begin
-        
         if entrada[i] in ['A'..'Z'] then
         begin
             error_jugador := true;
@@ -356,37 +354,53 @@ begin
                 colorFilaCompleto := true;
             end;
         end;
+
+        if entrada[i] in ['0'..'9'] then
+        begin
+            temp := temp + entrada[i];
+
+            if i = length(entrada) then
+            begin
+                writeln('Temp: ', temp);
+                writeln('Color a añadir: ', colorString);
+                if (temp <> '') and (colorString <> '') then
+                begin
+                    if esJugadaUnica(jugadas_bingo_impl, temp, color) then
+                    begin
+                        jugadas_bingo_impl.numJugadas := jugadas_bingo_impl.numJugadas + 1;
+                        jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].color := color;
+                        jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].jugada := temp;
+                        writeln('Jugada añadida'); 
+                    end
+                    else
+                    begin
+                        writeln('Jugada repetida');
+                        error_jugador := false;
+                
+                    end;
+                    temp := '';
+                    colorString := '';      
+                end
+                else 
+                begin
+                    writeln('El color o el numero no son validos o no existen');
+                    error_jugador := true;
+                    break;
+                end;
+            end;
+        end
+        else if entrada[i] in ['a'..'z'] then
+        begin
+            writeln('Entrada: ', entrada[i]);
+            colorString := colorString + entrada[i];
+        end;
     end;
 
-    if entrada[i] in ['0'..'9'] then
+    
+    if error_jugador = true then
     begin
-        temp := temp + entrada[i];
-        i := i + 1;
-    end
-    else if entrada[i] in ['a'..'z'] then
-    begin
-        colorString := colorString + entrada[i];
-        i := i + 1;
-
-        if i = length(entrada) then
-        begin
-            if temp <> '' then
-            begin
-                val(temp, valor);
-                
-                if esJugadaUnica(jugadas_bingo_impl, temp, color) then
-                begin
-                    jugadas_bingo_impl.jugadas[jugadas.elementos].color := color;
-                    jugadas_bingo_impl.jugadas[jugadas.elementos].numero := valor;
-                    jugadas_bingo_impl.elementos := jugadas.elementos + 1; 
-                end;
-                temp := '';
-                colorString := '';
-                
-            end;
-            
-        end;
-    end;
+        faseExtraccionJugadasBingo := false;
+    end;
 end;
 
 function faseExtraccionValores(nombreArchivo : string; var juego: tipoJuego; var jugadas_bingo_impl: jugadas_bingo): boolean;
@@ -441,7 +455,8 @@ begin
                 end;
             end;
         end
-        if not faseExtraccionJugadasBingo(jugadas_bingo, entrada) then
+        else
+        if not faseExtraccionJugadasBingo(jugadas_bingo_impl, s) then
         begin
             faseExtraccionValores := false;
             exit;
@@ -456,7 +471,7 @@ var
 
     {Variables random}
     numero_jugada: string;
-    numero_jugada_num: integer;
+    //numero_jugada_num: integer;
     color_jugada: tipo_color;
 
     {Variables de los jugadores}
@@ -464,23 +479,17 @@ var
     numero_jugador: string;
 
     bingo_jugador: boolean;
+    num_jugada: integer;
 begin
-    Randomize;
 
-    jugadas_bingo_impl.numJugadas := 0;
+    num_jugada := 1;
     bingo_jugador := false;
 
-    while bingo_jugador = false do
+    while (num_jugada <= jugadas_bingo_impl.numJugadas) or (bingo_jugador = false)do
     begin
-        repeat
-            numero_jugada_num := Random(MAX_VALOR_BINGO);
-            Str(numero_jugada_num, numero_jugada);
-            color_jugada := tipo_color(Random(Ord(High(tipo_color)) + 1));
-        until esJugadaUnica(jugadas_bingo_impl, numero_jugada, color_jugada);
-
-        jugadas_bingo_impl.numJugadas := jugadas_bingo_impl.numJugadas + 1;
-        jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].jugada := numero_jugada;
-        jugadas_bingo_impl.lista_jugadas_impl[jugadas_bingo_impl.numJugadas].color := color_jugada;
+        
+        numero_jugada := jugadas_bingo_impl.lista_jugadas_impl[num_jugada].jugada;
+        color_jugada := jugadas_bingo_impl.lista_jugadas_impl[num_jugada].color;
 
         writeln('');
         writeln('');
@@ -493,7 +502,6 @@ begin
             writeln('Jugador ', j);
             for k := 1 to juego.jugadores[j].numCartones do
             begin
-
                 for m := 1 to MAX_FILAS_CARTON do
                 begin
                     color_jugador := juego.jugadores[j].cartones[k].filas[m].color;
@@ -518,6 +526,7 @@ begin
                 imprimirCarton(juego.jugadores[j].cartones[k]);
             end;
         end;
+        num_jugada := num_jugada + 1;
     end;
 end;
 
@@ -531,11 +540,11 @@ var
     jugador_ganador_bingo: jugador_ganador;
     jugadas_bingo_impl: jugadas_bingo;
 
-    carton_ganador: carton;
+    //carton_ganador: carton;
 begin
     writeln('Comienzo de programa en pascal');
 
-    if faseExtraccionValores(nombreArchivo, juego, jugadas_bingo) = false then
+    if not faseExtraccionValores(nombreArchivo, juego, jugadas_bingo_impl) then
     begin
         exit;
     end;    
@@ -554,7 +563,7 @@ begin
 
     writeln('Jugador ganador: ', jugador_ganador_bingo.jugador, ' con carton ', jugador_ganador_bingo.carton);
     writeln('Se va a mostrar el carton ganador y todas las jugadas que le han hecho ser ganador');
-    mostrar_Jugadas_bingo_ganadoras(jugadas_bingo_impl, juego_inicio.jugadores[jugador_ganador_bingo.jugador].cartones[jugador_ganador_bingo.carton], carton_ganador);
+    mostrar_Jugadas_bingo_ganadoras(jugadas_bingo_impl, juego_inicio.jugadores[jugador_ganador_bingo.jugador].cartones[jugador_ganador_bingo.carton]);
 
 {    introducir_jugada_ganadora_txt(jugadas_bingo_impl, juego_inicio.jugadores[jugador_ganador_bingo.jugador].cartones[jugador_ganador_bingo.carton]);}
 end.

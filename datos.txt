@@ -12,3 +12,18 @@ azul 6
 7 8 25 60
 amarillo 9 10 11 74 73
 FIN
+rojo 3
+rojo 20
+rojo 10
+rojo 12
+rojo 8
+azul 5
+azul 15
+azul 25
+azul 88
+azul 91
+amarillo 2
+amarillo 4
+amarillo 50
+amarillo 21
+amarillo 43
