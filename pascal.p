@@ -183,6 +183,22 @@ begin
     end;
 end;
 
+function esJugadaUnica(jugadas: jugadas_bingo; numero: string; color: tipo_color): boolean;
+var
+    y: integer;
+begin
+    for y := 1 to jugadas.numJugadas do
+    begin
+        if (jugadas.lista_jugadas_impl[y].jugada = numero) and 
+           (jugadas.lista_jugadas_impl[y].color = color) then
+        begin
+            esJugadaUnica := false;
+            exit;
+        end;
+    end;
+    esJugadaUnica := true; 
+end;
+
 function faseExtraccionJugadores(var juego: tipoJuego; var jugadorIndex: integer; var cartonIndex: integer; var filaIndex: integer; var numeroIndex: integer; entrada: string):boolean;
 var
     i: integer;
@@ -202,6 +218,13 @@ begin
     begin
         if entrada[i] in ['A'..'Z'] then
         begin
+            error_jugador := true;
+            break;
+        end;
+
+        if (i = length(entrada)) and (entrada[i] = ' ') then
+        begin
+            writeln('En la linea ', entrada, ' hay un espacio en el final');
             error_jugador := true;
             break;
         end;
@@ -289,23 +312,6 @@ begin
     end;
 end;
 
-function esJugadaUnica(jugadas: jugadas_bingo; numero: string; color: tipo_color): boolean;
-var
-    y: integer;
-begin
-    for y := 1 to jugadas.numJugadas do
-    begin
-        writeln('Jugada: ', jugadas.lista_jugadas_impl[y].jugada);
-        if (jugadas.lista_jugadas_impl[y].jugada = numero) and 
-           (jugadas.lista_jugadas_impl[y].color = color) then
-        begin
-            esJugadaUnica := false;
-            exit;
-        end;
-    end;
-    esJugadaUnica := true; 
-end;
-
 function faseExtraccionJugadasBingo(var jugadas_bingo_impl: jugadas_bingo; entrada: string): boolean;
 var
     i: integer;
@@ -335,10 +341,12 @@ begin
             break;
         end;
 
-        {if (i = length(entrada)) and (entrada[i] <> ' ') then
+        if (i = length(entrada)) and (entrada[i] = ' ') then
         begin
             writeln('En la linea ', entrada, ' hay un espacio en el final');
-        end;}
+            error_jugador := true;
+            break;
+        end;
         
         if (entrada[i] = ' ' ) then
         begin
@@ -402,7 +410,6 @@ begin
         end
         else if entrada[i] in ['a'..'z'] then
         begin
-            writeln('Entrada: ', entrada[i]);
             colorString := colorString + entrada[i];
         end;
     end;
