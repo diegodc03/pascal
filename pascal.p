@@ -63,7 +63,7 @@ var
 begin
     for i := 1 to MAX_FILAS_CARTON do
     begin 
-        write(carton.filas[i].color, ' -->  ');
+        write('     ',carton.filas[i].color, '  -->  ');
         for j := 1 to MAX_NUMEROS_FILA do
         begin
             write(carton.filas[i].numeros[j], ' ');
@@ -274,6 +274,7 @@ begin
 
                 if comprobarNumeros(juego, jugadorIndex, cartonIndex, temp) then
                 begin
+                    writeln('Numero repetido en el carton');
                     error_jugador := true;
                     break;
                 end;
@@ -289,6 +290,12 @@ begin
                     if filaIndex = MAX_FILAS_CARTON then
                     begin
                         cartonIndex := cartonIndex + 1;
+                        if cartonIndex > MAX_CARTONES then
+                        begin
+                            writeln('Numero de cartones excedido');
+                            error_jugador := true;
+                            break;
+                        end;
                         juego.jugadores[jugadorIndex].numCartones := juego.jugadores[jugadorIndex].numCartones + 1;
                         filaIndex := 1;
                         colorFilaCompleto := false;
@@ -517,19 +524,21 @@ begin
         for j := 1 to MAX_JUGADORES do
         begin
             writeln('');
+            writeln('');
             writeln('Jugador ', j);
             for k := 1 to juego.jugadores[j].numCartones do
             begin
+                writeln('');
+                writeln(' --> carton ',k);
                 for m := 1 to MAX_FILAS_CARTON do
                 begin
                     color_jugador := juego.jugadores[j].cartones[k].filas[m].color;
                     for n := 1 to MAX_NUMEROS_FILA do
                     begin
                         numero_jugador := juego.jugadores[j].cartones[k].filas[m].numeros[n];
-                        
                         if (numero_jugador = numero_jugada) and (color_jugador = color_jugada) then
                         begin 
-                            writeln('Jugador ', j, ' ha tachado');
+                            writeln('Jugador ', j, ' ha tachado carton ', k, ' fila ', m, ' numero ', n);
                             juego.jugadores[j].cartones[k].filas[m].numeros[n] := 'XX';
                             if comprobarBingo(juego.jugadores[j].cartones[k]) then
                             begin
@@ -537,11 +546,16 @@ begin
                                 jugador_ganador_bingo.jugador := j;
                                 jugador_ganador_bingo.carton := k;
                                 bingo_jugador := true;
+                                break;
                             end;
                         end;
                     end;
                 end;
                 imprimirCarton(juego.jugadores[j].cartones[k]);
+            end;
+            if bingo_jugador = true then
+            begin
+                break;
             end;
         end;
         num_jugada := num_jugada + 1;
@@ -572,6 +586,7 @@ begin
     imprimirJugadores(juego);
 
     tomaJugada(juego, jugador_ganador_bingo, jugadas_bingo_impl);
+
     writeln('');
     writeln('');
     writeln('');
@@ -582,7 +597,7 @@ begin
     writeln('Jugador ganador: ', jugador_ganador_bingo.jugador, ' con carton ', jugador_ganador_bingo.carton);
     writeln('Se va a mostrar el carton ganador y todas las jugadas que le han hecho ser ganador');
     mostrar_Jugadas_bingo_ganadoras(jugadas_bingo_impl, juego_inicio.jugadores[jugador_ganador_bingo.jugador].cartones[jugador_ganador_bingo.carton]);
+    writeln('Jugador ganador: ', jugador_ganador_bingo.jugador, ' con carton: ', jugador_ganador_bingo.carton, ' se mostrararon todas las jugadas para ser el ganador');
 
-{    introducir_jugada_ganadora_txt(jugadas_bingo_impl, juego_inicio.jugadores[jugador_ganador_bingo.jugador].cartones[jugador_ganador_bingo.carton]);}
 end.
 
