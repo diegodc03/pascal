@@ -216,6 +216,8 @@ begin
 
     for i := 1 to length(entrada) do
     begin
+        //writeln('Entrada: ', entrada[i]);
+        //writeln('Color: ', colorString, ' temp: ', temp, ' colorFilaCompleto: ', colorFilaCompleto, ' i: ', i);
         if entrada[i] in ['A'..'Z'] then
         begin
             error_jugador := true;
@@ -224,7 +226,7 @@ begin
 
         if (i = length(entrada)) and (entrada[i] = ' ') then
         begin
-            writeln('En la linea ', entrada, ' hay un espacio en el final');
+            writeln('En la linea que pone: ', entrada, ' hay un espacio en el final');
             error_jugador := true;
             break;
         end;
@@ -268,8 +270,8 @@ begin
         else if entrada[i] in ['0'..'9'] then
         begin
             temp := temp + entrada[i];
-
-            if i = length(entrada) then
+            //writeln('Numero: ', temp, 'numeroIndex: ', numeroIndex);
+            if (i = length(entrada)) then
             begin
 
                 if comprobarNumeros(juego, jugadorIndex, cartonIndex, temp) then
@@ -281,9 +283,10 @@ begin
 
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
                 numeroIndex := numeroIndex + 1;
-            
-                if numeroIndex > MAX_NUMEROS_FILA then
+
+                if numeroIndex >= MAX_NUMEROS_FILA then
                 begin
+                //writeln('Numero de numeros en la fila excedido, el maximo es de', MAX_NUMEROS_FILA);
                     numeroIndex := 1;
                     colorFilaCompleto := false;
 
@@ -292,7 +295,7 @@ begin
                         cartonIndex := cartonIndex + 1;
                         if cartonIndex > MAX_CARTONES then
                         begin
-                            writeln('Numero de cartones excedido');
+                            writeln('Numero de cartones excedido, el maximo es de', MAX_CARTONES);
                             error_jugador := true;
                             break;
                         end;
@@ -400,16 +403,16 @@ begin
                     end
                     else
                     begin
-                        writeln('Jugada repetida');
-                        error_jugador := false;
-                
+                        writeln('Jugada repetida, en el fichero de entrada solo puede haber una jugada con el mismo numero y color, ya que en un bingo normal no se pueden repetir en ningún caso numeros');
+                        error_jugador := true;
+                        break;
                     end;
                     temp := '';
                     colorString := '';      
                 end
                 else 
                 begin
-                    writeln('El color o el numero no son validos o no existen');
+                    writeln('El color o el numero no son validos o no existen, tienen que tener un formato correcto <color><espacio><numero>, si no es incorrecto');
                     error_jugador := true;
                     break;
                 end;
