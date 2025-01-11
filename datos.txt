@@ -2,26 +2,18 @@ rojo 3 20 10 12 8
 azul 5 15 25 88 91
 amarillo 2 4 50 21 43
 FIN
-rojo 30 40 22 11 9
-azul 6 16 31 98 99
+rojo 30 40 22 11 9 azul 6 16 31 98 99
 amarillo 7 53 59 60 61
-
-rojo 3 20 10 12 8
-azul 5 15 25 88 91
-amarillo 2 4 50 21 43
 FIN
-rojo 1 2
-3 4 5
+rojo 2 1
+5 4 3
 azul 6
 7 8 25 60
 amarillo 9 10 11 74 73
 FIN
 rojo 3
 rojo 20
-amarillo 21
-amarillo 43
 rojo 10
-amarillo 43
 rojo 12
 rojo 8
 azul 5
@@ -32,7 +24,5 @@ azul 91
 amarillo 2
 amarillo 4
 amarillo 50
-azul 25
-azul 88
 amarillo 21
 amarillo 43

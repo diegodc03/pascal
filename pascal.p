@@ -183,6 +183,31 @@ begin
     end;
 end;
 
+function ordenarLinea(var linea: fila_carton): fila_carton;
+var
+    i, j: integer;
+    temp_str: string;
+    i_num, j_num: integer;
+begin
+    for i := 1 to MAX_NUMEROS_FILA-1 do
+    begin
+        for j := i+1 to MAX_NUMEROS_FILA do
+        begin
+            //pasar los valores str a num
+            val(linea.numeros[i], i_num);
+            val(linea.numeros[j], j_num);
+            writeln('i_num: ', i_num, ' j_num: ', j_num);
+            if i_num > j_num then
+            begin
+                temp_str := linea.numeros[i];
+                linea.numeros[i] := linea.numeros[j];
+                linea.numeros[j] := temp_str;
+            end;
+        end;
+    end;
+    ordenarLinea := linea;
+end;
+
 function esJugadaUnica(jugadas: jugadas_bingo; numero: string; color: tipo_color): boolean;
 var
     y: integer;
@@ -198,6 +223,9 @@ begin
     end;
     esJugadaUnica := true; 
 end;
+
+
+
 
 function faseExtraccionJugadores(var juego: tipoJuego; var jugadorIndex: integer; var cartonIndex: integer; var filaIndex: integer; var numeroIndex: integer; entrada: string):boolean;
 var
@@ -216,15 +244,13 @@ begin
 
     for i := 1 to length(entrada) do
     begin
-        //writeln('Entrada: ', entrada[i]);
-        //writeln('Color: ', colorString, ' temp: ', temp, ' colorFilaCompleto: ', colorFilaCompleto, ' i: ', i);
         if entrada[i] in ['A'..'Z'] then
         begin
             error_jugador := true;
             break;
         end;
 
-        if (i = length(entrada)) and (entrada[i] = ' ') then
+        if (i = length(entrada)) and ((entrada[i] = ' ') or (entrada[i] in ['a'..'z'])) then
         begin
             writeln('En la linea que pone: ', entrada, ' hay un espacio en el final');
             error_jugador := true;
@@ -259,37 +285,18 @@ begin
                 if comprobarNumeros(juego, jugadorIndex, cartonIndex, temp) then
                 begin
                     error_jugador := true;
+                    writeln('Numero repetido en el carton');
                     break;
                 end;
-         
                 juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
                 numeroIndex := numeroIndex + 1;
                 temp := '';
-            end;
-        end
-        else if entrada[i] in ['0'..'9'] then
-        begin
-            temp := temp + entrada[i];
-            //writeln('Numero: ', temp, 'numeroIndex: ', numeroIndex);
-            if (i = length(entrada)) then
-            begin
 
-                if comprobarNumeros(juego, jugadorIndex, cartonIndex, temp) then
+                if numeroIndex > MAX_NUMEROS_FILA then
                 begin
-                    writeln('Numero repetido en el carton');
-                    error_jugador := true;
-                    break;
-                end;
-
-                juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
-                numeroIndex := numeroIndex + 1;
-
-                if numeroIndex >= MAX_NUMEROS_FILA then
-                begin
-                //writeln('Numero de numeros en la fila excedido, el maximo es de', MAX_NUMEROS_FILA);
                     numeroIndex := 1;
                     colorFilaCompleto := false;
-
+                    juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex] := ordenarLinea(juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex]);
                     if filaIndex = MAX_FILAS_CARTON then
                     begin
                         cartonIndex := cartonIndex + 1;
@@ -310,12 +317,56 @@ begin
                 end;
             end;
         end
+        else if entrada[i] in ['0'..'9'] then
+        begin
+            temp := temp + entrada[i];
+            
+            if (i = length(entrada)) {or ((numeroIndex = MAX_NUMEROS_FILA) and (entrada[i] = ' '))} then
+            begin
+                if comprobarNumeros(juego, jugadorIndex, cartonIndex, temp) then
+                begin
+                    writeln('Numero repetido en el carton');
+                    error_jugador := true;
+                    break;
+                end;
+                juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex].numeros[numeroIndex] := temp;
+                numeroIndex := numeroIndex + 1;
+
+                if numeroIndex >= MAX_NUMEROS_FILA then
+                begin
+                    numeroIndex := 1;
+                    colorFilaCompleto := false;
+                    juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex] := ordenarLinea(juego.jugadores[jugadorIndex].cartones[cartonIndex].filas[filaIndex]);
+                    if filaIndex = MAX_FILAS_CARTON then
+                    begin
+                        writeln('Soy la ultima fila y aqui funciono');
+                        cartonIndex := cartonIndex + 1;
+                        writeln('Carton index: ', cartonIndex);
+                        if cartonIndex > MAX_CARTONES then
+                        begin
+                            writeln('Numero de cartones excedido, el maximo es de', MAX_CARTONES);
+                            error_jugador := true;
+                            break;
+                        end;
+                        writeln('Esttoy aqui');
+                        juego.jugadores[jugadorIndex].numCartones := juego.jugadores[jugadorIndex].numCartones + 1;
+                        filaIndex := 1;
+                        colorFilaCompleto := false;
+                        writeln('Carton index: ', cartonIndex);
+                    end
+                    else
+                    begin
+                        filaIndex := filaIndex + 1;
+                    end;
+                end;
+            end;
+        end
         else if entrada[i] in ['a'..'z'] then
         begin
             colorString := colorString + entrada[i];
         end
     end;
-
+    writeln('Carton index: ', cartonIndex);
     if error_jugador = true then
     begin
         faseExtraccionJugadores := false;
@@ -341,7 +392,6 @@ begin
     colorFilaCompleto := false;
     error_jugador := false;
 
-
     for i := 1 to length(entrada) do
     begin
         if entrada[i] in ['A'..'Z'] then
@@ -351,7 +401,7 @@ begin
             break;
         end;
 
-        if (i = length(entrada)) and (entrada[i] = ' ') then
+        if (i = length(entrada)) and ((entrada[i] = ' ') or (entrada[i] in ['a'..'z']))  then
         begin
             writeln('En la linea ', entrada, ' hay un espacio en el final');
             error_jugador := true;
@@ -454,9 +504,11 @@ begin
     filaIndex := 1;
     numeroIndex := 1;
     faseExtraccionValores := true;
+
     while not EOF(entrada) do         
     begin
         readln(entrada,s);
+        writeln('Leyendo: ', s);
         if finLecturaJugadores = false then
         begin
             if s = 'FIN' then
@@ -478,6 +530,7 @@ begin
             begin
                 if not faseExtraccionJugadores(juego, jugadorIndex, cartonIndex, filaIndex, numeroIndex, s) then
                 begin
+                    writeln('Error en la fase de extraccion de jugadores');
                     faseExtraccionValores := false;
                     exit;
                 end;
